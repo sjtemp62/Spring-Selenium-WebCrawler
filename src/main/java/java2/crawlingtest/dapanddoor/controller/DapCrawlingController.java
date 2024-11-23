@@ -6,21 +6,21 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 @RestController
-public class SeleniumHeadlessController {
+@RequestMapping("/api")
+public class DapCrawlingController {
 
-    @GetMapping("/selenium-headless-crawl")
+    @GetMapping("/single-dap-crawling")
     public String loginAndScrape(@RequestParam String loginUrl,
                                  @RequestParam String username,
                                  @RequestParam String password) {
@@ -125,12 +125,12 @@ public class SeleniumHeadlessController {
                     By.id("CP1_COM_Page_Controllor1_lbtnPage2")));
             page2Button.click();
 
-// 페이지 전환 대기
+            // 페이지 전환 대기
             wait.until(ExpectedConditions.attributeContains(
                     By.cssSelector("a[href*='StdNotice02.aspx']"), "href", "PageNo=2"
             ));
 
-// 2페이지의 공지사항 링크 가져오기
+            // 2페이지의 공지사항 링크 가져오기
             noticeLinks = driver.findElements(By.cssSelector("a[href*='StdNotice02.aspx']"));
             for (WebElement link : noticeLinks) {
                 String linkText = link.getText();
