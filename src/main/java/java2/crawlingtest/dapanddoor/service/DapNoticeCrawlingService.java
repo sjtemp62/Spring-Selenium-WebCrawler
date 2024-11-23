@@ -1,11 +1,14 @@
 package java2.crawlingtest.dapanddoor.service;
 
+import java2.crawlingtest.dapanddoor.dto.DapNoticeItem;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,7 +37,7 @@ public class DapNoticeCrawlingService extends AbstractCrawlingService {
 
     @Override
     protected String crawl() {
-        StringBuilder result = new StringBuilder();
+        List<DapNoticeItem> notices = new ArrayList<>();
 
         try {
             // 공지사항 페이지로 이동
@@ -47,37 +50,44 @@ public class DapNoticeCrawlingService extends AbstractCrawlingService {
             List<WebElement> noticeLinks = driver.findElements(By.cssSelector("a[href*='StdNotice02.aspx']"));
 
             for (WebElement link : noticeLinks) {
-                String linkText = link.getText();
-                String linkHref = link.getAttribute("href");
+                String linkText = link.getText(); // 공지사항 제목
+                String linkHref = link.getAttribute("href"); // 공지사항 링크
                 String absoluteUrl = new URL(new URL(driver.getCurrentUrl()), linkHref).toString();
 
-                result.append("Link: ").append(absoluteUrl).append("\n");
-                result.append("Text: ").append(linkText).append("\n\n");
+                notices.add(new DapNoticeItem(absoluteUrl, linkText));
             }
 
-            // JavaScript 실행 대신 WebElement 클릭
+            // 다음 페이지 (2페이지)로 이동
             WebElement page2Button = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.id("CP1_COM_Page_Controllor1_lbtnPage2")));
+                    By.id("CP1_COM_Page_Controllor1_lbtnPage2")
+            ));
             page2Button.click();
 
-            // 페이지 전환 대기
+            // 2페이지 공지사항 가져오기
             wait.until(ExpectedConditions.attributeContains(
                     By.cssSelector("a[href*='StdNotice02.aspx']"), "href", "PageNo=2"
             ));
-
-            // 2페이지의 공지사항 링크 가져오기
             noticeLinks = driver.findElements(By.cssSelector("a[href*='StdNotice02.aspx']"));
+
             for (WebElement link : noticeLinks) {
                 String linkText = link.getText();
                 String linkHref = link.getAttribute("href");
                 String absoluteUrl = new URL(new URL(driver.getCurrentUrl()), linkHref).toString();
-                result.append("Link: ").append(absoluteUrl).append("\n");
-                result.append("Text: ").append(linkText).append("\n\n");
+
+                notices.add(new DapNoticeItem(absoluteUrl, linkText));
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return result.toString();
+        try {
+            // Jackson으로 JSON 변환
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(notices); // JSON 반환
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{\"error\": \"Failed to convert notices to JSON.\"}";
+        }
     }
 }

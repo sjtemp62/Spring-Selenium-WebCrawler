@@ -40,6 +40,7 @@ public abstract class AbstractCrawlingService implements CrawlingService {
     private void initializeDriver() throws MalformedURLException {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--disable-gpu");
+        // options.addArguments("--headless");
         driver = new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }

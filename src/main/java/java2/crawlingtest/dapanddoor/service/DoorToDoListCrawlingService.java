@@ -1,11 +1,13 @@
 package java2.crawlingtest.dapanddoor.service;
 
+import java2.crawlingtest.dapanddoor.dto.DoorTodoItem;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,6 +35,7 @@ public class DoorToDoListCrawlingService extends AbstractCrawlingService{
 
     @Override
     protected String crawl() {
+        List<DoorTodoItem> doorTodoItems = new ArrayList<>();
         StringBuilder result = new StringBuilder();
 
         try {
@@ -44,9 +47,9 @@ public class DoorToDoListCrawlingService extends AbstractCrawlingService{
                     By.cssSelector(".list_box.todo_list")
             ));
             // To-Do 항목들 가져오기
-            List<WebElement> todoItems = todoListBox.findElements(By.cssSelector(".todo_items"));
+            List<WebElement> todoItemsElements = todoListBox.findElements(By.cssSelector(".todo_items"));
 
-            for (WebElement item : todoItems) {
+            for (WebElement item : todoItemsElements) {
                 // 과제 제목
                 String title = item.findElement(By.cssSelector(".cnt_tit .tit")).getText();
 
@@ -57,18 +60,16 @@ public class DoorToDoListCrawlingService extends AbstractCrawlingService{
                 String onClickAttribute = item.findElement(By.tagName("a")).getAttribute("onclick");
                 String url = extractUrlFromOnClick(onClickAttribute);
 
-                // 결과 저장
-                result.append("Title: ").append(title).append("\n");
-                result.append("Due Date: ").append(dueDate).append("\n");
-                result.append("URL: ").append(url).append("\n\n");
+                // 데이터 객체로 저장
+                doorTodoItems.add(new DoorTodoItem(title, dueDate, url));
             }
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(doorTodoItems);
 
         } catch (Exception e) {
             e.printStackTrace();
-            result.append("Error occurred: ").append(e.getMessage());
+            return "{\"error\": \"An error occurred during crawling.\"}";
         }
-
-        return result.toString();
     }
 
     // onClick 속성에서 URL 추출

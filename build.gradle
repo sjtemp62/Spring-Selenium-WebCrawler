@@ -25,6 +25,7 @@ dependencies {
 	implementation 'org.seleniumhq.selenium:selenium-java:4.26.0'
 	compileOnly 'org.projectlombok:lombok:1.18.30'
 	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2' // 최신 버전
 }
 
 tasks.named('test') {
